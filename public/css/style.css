@@ -1,0 +1,19 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f5f7fa;
+  color: #1a1a1a;
+  max-width: 640px;
+  margin: 60px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #2b6cb0;
+}
+
+code {
+  background-color: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
