@@ -8,11 +8,14 @@ getUsuarios,
 createUsuario,
 updateUsuario,
 deleteUsuario,
+createUsuarioConHistorial,
 } = require('../controllers/usuarioController');
 
 router.get('/', getUsuarios);
 router.post('/', createUsuario);
+router.post('/con-historial', createUsuarioConHistorial);
 router.put('/:id', updateUsuario);
 router.delete('/:id', deleteUsuario);
+
 
 module.exports = router;

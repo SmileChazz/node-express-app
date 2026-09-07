@@ -156,4 +156,39 @@ res.status(500).json({
 }
 }
 
-module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario };
+const { crearUsuarioConHistorial } = require('../services/usuarioService');
+
+/**
+ * POST /usuarios/con-historial
+ * Crea un usuario junto con su registro de historial, en una transaccion.
+ * Body: { nombre, email, forzarError (opcional, boolean) }
+ */
+async function createUsuarioConHistorial(req, res) {
+const { nombre, email, forzarError } = req.body;
+
+if (!nombre || !email) {
+return res.status(400).json({
+    status: 'error',
+    message: 'Los campos "nombre" y "email" son obligatorios',
+    data: null,
+});
+}
+
+try {
+const resultado = await crearUsuarioConHistorial(nombre, email, forzarError);
+res.status(201).json({
+    status: 'ok',
+    message: 'Usuario e historial creados correctamente (transacción exitosa)',
+    data: resultado,
+});
+} catch (error) {
+res.status(500).json({
+    status: 'error',
+    message: 'La transacción falló y se revirtió (rollback)',
+    data: null,
+});
+}
+}
+
+module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario, createUsuarioConHistorial };
+
