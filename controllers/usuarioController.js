@@ -189,7 +189,48 @@ res.status(500).json({
 });
 }
 }
-const Usuario = require('../models/Usuario');
+/**
+ * GET /usuarios/:id/historial
+ * Devuelve un usuario junto con todos sus registros de historial,
+ * en una sola consulta (usando "include").
+ */
+async function getUsuarioConHistorial(req, res) {
+const { id } = req.params;
+
+try {
+const usuario = await Usuario.findByPk(id, {
+    attributes: ['id', 'nombre', 'email', 'created_at'],
+    include: [
+    {
+        model: Historial,
+        attributes: ['id', 'accion', 'fecha'],
+    },
+    ],
+});
+
+if (!usuario) {
+    return res.status(404).json({
+    status: 'error',
+    message: `No existe un usuario con id ${id}`,
+    data: null,
+    });
+}
+
+res.status(200).json({
+    status: 'ok',
+    message: 'Usuario con su historial obtenido correctamente',
+    data: usuario,
+});
+} catch (error) {
+console.error('Error al obtener usuario con historial:', error.message);
+res.status(500).json({
+    status: 'error',
+    message: 'Error al obtener usuario con historial',
+    data: null,
+});
+}
+}
+const { Usuario, Historial } = require('../models');
 
 /**
  * GET /usuarios/orm
@@ -218,5 +259,5 @@ res.status(500).json({
 }
 }
 
-module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario, createUsuarioConHistorial, getUsuariosORM };
+module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario, createUsuarioConHistorial, getUsuariosORM, getUsuarioConHistorial };
 
