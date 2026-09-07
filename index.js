@@ -7,11 +7,18 @@
 
 require('dotenv').config();
 require('./config/db');
+const sequelize = require('./config/sequelize');
+
+sequelize
+  .authenticate()
+  .then(() => console.log('Sequelize conectado correctamente a PostgreSQL'))
+  .catch((error) => console.error('Error al conectar Sequelize:', error.message));
 const express = require('express');
 const path = require('path');
 
 const requestLogger = require('./middlewares/logger');
 const mainRoutes = require('./routes/mainRoutes');
+const usuarioRoutes = require('./routes/usuarioRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +36,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Rutas ---
 app.use('/', mainRoutes);
+app.use('/usuarios', usuarioRoutes);
 
 // --- Manejo de rutas no encontradas (404) ---
 app.use((req, res) => {

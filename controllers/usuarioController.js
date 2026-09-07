@@ -189,6 +189,34 @@ res.status(500).json({
 });
 }
 }
+const Usuario = require('../models/Usuario');
 
-module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario, createUsuarioConHistorial };
+/**
+ * GET /usuarios/orm
+ * Igual que GET /usuarios, pero usando Sequelize en vez de SQL manual.
+ * Sirve para comparar ambos enfoques con el mismo resultado esperado.
+ */
+async function getUsuariosORM(req, res) {
+try {
+const usuarios = await Usuario.findAll({
+    attributes: ['id', 'nombre', 'email', 'created_at'],
+    order: [['id', 'ASC']],
+});
+
+res.status(200).json({
+    status: 'ok',
+    message: 'Usuarios obtenidos correctamente (via Sequelize)',
+    data: usuarios,
+});
+} catch (error) {
+console.error('Error al obtener usuarios con ORM:', error.message);
+res.status(500).json({
+    status: 'error',
+    message: 'Error al obtener usuarios (ORM)',
+    data: null,
+});
+}
+}
+
+module.exports = { getUsuarios, createUsuario, updateUsuario, deleteUsuario, createUsuarioConHistorial, getUsuariosORM };
 
