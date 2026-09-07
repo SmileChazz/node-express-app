@@ -110,13 +110,64 @@ con el formato `[fecha] [hora] MÉTODO /ruta`.
   entrantes (no solo un subconjunto), ya que aporta trazabilidad completa del
   uso del servidor y sienta la base para un futuro middleware de auditoría.
 
-## 🗺️ Próximos pasos (Módulos 7 y 8)
+## 🗄️ Parte 2 — Módulo 7: Acceso a datos
 
-- Conectar la aplicación a PostgreSQL mediante Sequelize.
-- Modelar entidades relacionadas (1:1, 1:N, N:M) y exponer operaciones CRUD.
-- Proteger rutas con autenticación JWT.
-- Implementar subida de archivos con validación de tipo y tamaño.
+### Conexión a la base de datos
+Se utilizó **PostgreSQL** como base de datos relacional, junto al cliente `pg`
+para las consultas SQL manuales y **Sequelize** como ORM (ver más abajo).
+Se eligió `pg` porque es el cliente oficial y más liviano para PostgreSQL,
+sin la sobrecarga de un ORM cuando se necesita control total sobre el SQL
+(útil especialmente para las transacciones). Las credenciales de conexión
+(usuario, contraseña, host, puerto) se almacenan en variables de entorno
+(`.env`), nunca hardcodeadas en el código ni subidas al repositorio.
+
+### CRUD completo sobre la entidad `usuarios`
+Se implementaron las 4 operaciones (`GET`, `POST`, `PUT`, `DELETE`) sobre
+`/usuarios`. En las operaciones de `PUT` y `DELETE` se valida primero que
+el `id` exista antes de modificar/eliminar, devolviendo un error 404 claro
+en caso contrario. En `PUT`, se utilizó `COALESCE` en el SQL para permitir
+actualizar solo los campos enviados en el body, sin sobrescribir con `NULL`
+los campos que el usuario no quiso modificar.
+
+### Transaccionalidad
+Se implementó una transacción (`BEGIN` / `COMMIT` / `ROLLBACK`) en
+`services/usuarioService.js`, que agrupa la creación de un usuario junto
+con su registro en la tabla `historial` como una única operación atómica.
+Se verificó manualmente que, al forzar un error luego de crear el usuario
+pero antes de crear el historial, el `ROLLBACK` revierte ambas operaciones
+—el usuario no queda guardado— confirmando la consistencia de los datos.
+
+### ORM (Sequelize)
+Se incorporó Sequelize como capa adicional sobre la misma base de datos,
+definiendo el modelo `Usuario` (mapeado a la tabla `usuarios` ya existente).
+Se comparó el resultado de `GET /usuarios` (SQL manual) contra
+`GET /usuarios/orm` (Sequelize), confirmando que ambos devuelven los
+mismos datos. La principal ventaja observada de Sequelize es la reducción
+de código repetitivo: en vez de escribir el SQL a mano, se describe la
+consulta como un objeto JavaScript, y Sequelize genera el SQL equivalente
+(verificable en consola gracias al logging habilitado).
+
+### Relaciones entre modelos
+Se modeló una relación **1:N** entre `Usuario` y `Historial`
+(`Usuario.hasMany(Historial)` / `Historial.belongsTo(Usuario)`), reflejando
+la clave foránea `usuario_id` ya existente en la base de datos. La ruta
+`GET /usuarios/:id/historial` utiliza `include` para traer el usuario junto
+a todos sus registros de historial en una sola consulta (generando un
+`LEFT OUTER JOIN` por detrás).
+
+### Endpoints de esta parte
+| Método | Ruta                        | Descripción                                   |
+|--------|-----------------------------|-----------------------------------------------|
+| GET    | `/usuarios`                 | Lista todos los usuarios (SQL manual)         |
+| GET    | `/usuarios/orm`             | Lista todos los usuarios (vía Sequelize)      |
+| GET    | `/usuarios/:id/historial`   | Usuario + su historial (relación 1:N)         |
+| POST   | `/usuarios`                 | Crea un usuario                               |
+| POST   | `/usuarios/con-historial`   | Crea usuario + historial (transacción)        |
+| PUT    | `/usuarios/:id`             | Actualiza campos de un usuario                |
+| DELETE | `/usuarios/:id`             | Elimina un usuario                            |
+
+## 🗺️ Módulo 8
 
 ## Autor
 
-Desarrollado por Silvia Rojas como parte del bootcamp de Alkemy — Módulo 6: Node & Express Web App
+Desarrollado por Silvia Rojas como parte del bootcamp de Alkemy — Módulo 6, 7 y 8: Node & Express Web App
