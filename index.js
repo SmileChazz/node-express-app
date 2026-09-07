@@ -6,6 +6,7 @@
 // haciendo mas simple y estandar la ejecucion del proyecto.
 
 require('dotenv').config();
+require('./config/db');
 const express = require('express');
 const path = require('path');
 
