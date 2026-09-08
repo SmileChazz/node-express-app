@@ -166,8 +166,82 @@ a todos sus registros de historial en una sola consulta (generando un
 | PUT    | `/usuarios/:id`             | Actualiza campos de un usuario                |
 | DELETE | `/usuarios/:id`             | Elimina un usuario                            |
 
-## 🗺️ Módulo 8
+## 📤 Parte 3 — Módulo 8: API RESTful, archivos y seguridad
 
-## Autor
+### Diseño RESTful
+La aplicación ya contaba, desde el Módulo 7, con más de 4 endpoints bien
+definidos sobre el recurso `/usuarios`, aplicando los 4 métodos HTTP
+(`GET`, `POST`, `PUT`, `DELETE`) según las convenciones REST: el recurso
+en plural en la URL, y la acción determinada por el método, nunca por el
+verbo en la ruta (por ejemplo, se usa `DELETE /usuarios/:id`, y no
+`GET /borrarUsuario/:id`).
+
+### Subida de archivos (Multer)
+Se implementó el endpoint `POST /upload` utilizando **Multer** para procesar
+archivos en formato `multipart/form-data`. Se aplicaron dos validaciones:
+- **Tipo de archivo**: solo se aceptan imágenes (`image/jpeg`, `image/png`,
+  `image/webp`), rechazando cualquier otro formato con un error 400 claro.
+- **Tamaño máximo**: 2 MB por archivo, rechazando archivos más pesados.
+
+Los archivos se guardan en la carpeta `uploads/` (no versionada en git,
+salvo un `.gitkeep` para mantener la estructura), con un nombre único
+(timestamp + nombre original) para evitar sobrescrituras. Se agregó un
+middleware global de manejo de errores (`middlewares/errorHandler.js`)
+para capturar los errores de Multer y devolver siempre el formato
+`{ status, message, data }`, en vez de la página de error HTML por defecto
+de Express.
+
+### Autenticación con JWT
+Se implementó `POST /auth/register` (crea un usuario, guardando la
+contraseña con `bcrypt.hash`, nunca en texto plano) y `POST /auth/login`
+(verifica credenciales con `bcrypt.compare` y devuelve un JWT firmado,
+válido por 1 hora).
+
+**¿Por qué se protegieron `DELETE /usuarios/:id` y
+`POST /usuarios/con-historial`?** Ambas son operaciones sensibles: una
+elimina datos de forma permanente, y la otra crea múltiples registros
+relacionados. Se consideró que estas acciones no deberían estar
+disponibles públicamente, a diferencia de operaciones de solo lectura
+como `GET /usuarios`.
+
+**¿Cómo se almacena y envía el token?** El token no se guarda en el
+servidor (JWT es "stateless": el servidor no mantiene sesión). Es
+responsabilidad del cliente guardarlo (por ejemplo, en memoria o
+`localStorage` en una app real) y enviarlo en cada petición a una ruta
+protegida, en el header `Authorization`, con el formato:
+`Authorization: Bearer <token>`. El middleware `verifyToken.js` verifica
+la firma y la expiración del token en cada petición antes de dejar
+continuar hacia el controlador.
+
+### Endpoints protegidos (requieren JWT)
+| Método | Ruta                        | Protección        |
+|--------|-----------------------------|--------------------|
+| POST   | `/usuarios/con-historial`   | Requiere token     |
+| DELETE | `/usuarios/:id`             | Requiere token     |
+
+### Endpoints de autenticación y archivos
+| Método | Ruta               | Descripción                        |
+|--------|--------------------|--------------------------------------|
+| POST   | `/auth/register`   | Registra un nuevo usuario            |
+| POST   | `/auth/login`      | Inicia sesión y devuelve un JWT      |
+| POST   | `/upload`          | Sube un archivo (campo `imagen`)     |
+
+## 🎯 Reflexión final
+
+Este proyecto integró progresivamente los tres pilares del desarrollo
+backend con Node.js: en el **Módulo 6** se construyó la base del servidor
+(rutas, middlewares, persistencia en archivos planos); en el **Módulo 7**
+se conectó esa base a una base de datos real (PostgreSQL), incorporando
+tanto SQL manual como un ORM (Sequelize), transacciones y relaciones entre
+entidades; y en el **Módulo 8** se expuso toda esa lógica como una API
+RESTful seria, agregando manejo de archivos y autenticación con JWT.
+
+Cada etapa se apoyó en la anterior sin necesidad de rehacer lo ya
+construido, lo cual confirma que la arquitectura modular elegida desde
+el principio (separación en `routes`, `controllers`, `middlewares`,
+`services` y `models`) escaló correctamente a medida que el proyecto
+creció en complejidad.
+
+## 🗺️ Autor
 
 Desarrollado por Silvia Rojas como parte del bootcamp de Alkemy — Módulo 6, 7 y 8: Node & Express Web App
