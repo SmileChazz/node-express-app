@@ -3,6 +3,7 @@
 
 const express = require('express');
 const router = express.Router();
+const verifyToken = require('../middlewares/verifyToken');
 const {
 getUsuarios,
 createUsuario,
@@ -15,9 +16,9 @@ getUsuarioConHistorial,
 
 router.get('/', getUsuarios);
 router.post('/', createUsuario);
-router.post('/con-historial', createUsuarioConHistorial);
+router.post('/con-historial', verifyToken, createUsuarioConHistorial);
 router.put('/:id', updateUsuario);
-router.delete('/:id', deleteUsuario);
+router.delete('/:id', verifyToken, deleteUsuario);
 router.get('/orm', getUsuariosORM);
 router.get('/:id/historial', getUsuarioConHistorial);
 

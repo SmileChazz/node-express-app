@@ -21,6 +21,10 @@ email: {
     type: DataTypes.STRING,
     allowNull: false,
 },
+password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+},
 },
 {
 tableName: 'usuarios', // le decimos que use la tabla que YA existe

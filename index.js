@@ -9,6 +9,7 @@ const mainRoutes = require('./routes/mainRoutes');
 const usuarioRoutes = require('./routes/usuarioRoutes');
 const uploadRoutes = require('./routes/uploadRoutes'); 
 const errorHandler = require('./middlewares/errorHandler');
+const authRoutes = require('./routes/authRoutes');
 
 const sequelize = require('./config/sequelize');
 sequelize
@@ -29,6 +30,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/', mainRoutes);
 app.use('/usuarios', usuarioRoutes);
 app.use('/upload', uploadRoutes); 
+app.use('/auth', authRoutes);
 
 // --- Manejo de rutas no encontradas (404) ---
 app.use((req, res) => {
