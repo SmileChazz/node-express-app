@@ -1,42 +1,34 @@
 // index.js
-// Archivo principal de la aplicacion.
-// Se eligio "index.js" (en lugar de "app.js") como archivo de entrada
-// porque es el nombre por defecto que Node.js busca automaticamente
-// al ejecutar "node ." y coincide con el "main" declarado en package.json,
-// haciendo mas simple y estandar la ejecucion del proyecto.
-
 require('dotenv').config();
 require('./config/db');
-const sequelize = require('./config/sequelize');
-
-sequelize
-  .authenticate()
-  .then(() => console.log('Sequelize conectado correctamente a PostgreSQL'))
-  .catch((error) => console.error('Error al conectar Sequelize:', error.message));
 const express = require('express');
 const path = require('path');
 
 const requestLogger = require('./middlewares/logger');
 const mainRoutes = require('./routes/mainRoutes');
 const usuarioRoutes = require('./routes/usuarioRoutes');
+const uploadRoutes = require('./routes/uploadRoutes'); 
+const errorHandler = require('./middlewares/errorHandler');
+
+const sequelize = require('./config/sequelize');
+sequelize
+  .authenticate()
+  .then(() => console.log('Sequelize conectado correctamente a PostgreSQL'))
+  .catch((error) => console.error('Error al conectar Sequelize:', error.message));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares globales ---
-
-// Permite parsear JSON en el body de las requests (util desde ya para futuras rutas)
 app.use(express.json());
-
-// Registra cada visita en logs/log.txt (persistencia en archivo plano)
 app.use(requestLogger);
-
-// Sirve contenido estatico (CSS, imagenes, etc.) desde la carpeta /public
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); 
 
 // --- Rutas ---
 app.use('/', mainRoutes);
 app.use('/usuarios', usuarioRoutes);
+app.use('/upload', uploadRoutes); 
 
 // --- Manejo de rutas no encontradas (404) ---
 app.use((req, res) => {
@@ -46,6 +38,7 @@ app.use((req, res) => {
     data: null,
   });
 });
+app.use(errorHandler);
 
 // --- Inicio del servidor ---
 app.listen(PORT, () => {
