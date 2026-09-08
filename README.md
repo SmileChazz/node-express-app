@@ -40,7 +40,7 @@ node-express-app/
 
 ```bash
 # 1. Clonar el repositorio
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/SmileChazz/node-express-app
 cd node-express-app
 
 # 2. Instalar dependencias
